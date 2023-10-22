@@ -45,6 +45,11 @@ async function run() {
     await client.connect();
 
 
+
+    
+
+    // collection of products 
+
     const productCollection = client.db('productDB').collection('product');
 
     // for post the product from user 
@@ -57,6 +62,20 @@ async function run() {
       const result = await productCollection.insertOne(productDetails);
       res.send(result);
     })
+
+
+
+    // get/read the specific data 
+
+    app.get('/product' , async(req , res) =>{
+      const cursor = productCollection.find();
+
+      const result = await cursor.toArray();
+
+      res.send(result);
+    })
+
+
 
 
     
