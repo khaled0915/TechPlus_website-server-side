@@ -1,15 +1,23 @@
+require('dotenv').config();
 const express = require('express')
 
-require('dotenv').config();
+const jwt = require('jsonwebtoken')
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
 
-const cors = require('cors');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
+const port = process.env.PORT || 5000 ;
+
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-const port = process.env.PORT || 5000 ;
+const cors = require('cors');
+
+
+
+
 
 // middleware 
 
@@ -23,101 +31,80 @@ app.use(express.json());
 // gM3Koz0dMH6wQn4s
 
 
-
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4v47x55.mongodb.net/?retryWrites=true&w=majority`;
 
-// console.log(uri);
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    }
+  });
 
 
 
+  async function run(){
+    try {
+
+        // await client.connect();
+
+
+        const productCollection = client.db('productDB').collection('product')
+
+        app.post('/product' , async(req, res)=>{
+
+            const productDetails = req.body ;
+            console.log(productDetails);
+      
+            const result = await productCollection.insertOne(productDetails);
+            res.send(result);
+          })
+
+
+          app.get('/product' , async(req , res) =>{
+            const cursor = productCollection.find();
+      
+            const result = await cursor.toArray();
+      
+            res.send(result);
+          })
+
+          app.get('/product/:brand_name' , async (req , res)=>{
+            const brand_name = req.params.brand_name ; 
+            const query = { brandName : brand_name } ;
+            const result = await productCollection.find(query).toArray();
+            res.send(result);
+          })
+
+          app.get('/product/:id' , async (req , res)=>{
+            const id = req.params.id ; 
+
+            const query = { _id : new ObjectId(id)};
+
+            const result = await productCollection.findOne(query);
+            res.send(result);
+          })
+
+          console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+
+
+
+    }
+    finally{
+        // await client.close();
+
+    }
     
-
-    // collection of products 
-
-    const productCollection = client.db('productDB').collection('product');
-
-    // for post the product from user 
-
-    app.post('/product' , async(req, res)=>{
-
-      const productDetails = req.body ;
-      console.log(productDetails);
-
-      const result = await productCollection.insertOne(productDetails);
-      res.send(result);
-    })
-
-
-
-    // get/read the specific data 
-
-    app.get('/product' , async(req , res) =>{
-      const cursor = productCollection.find();
-
-      const result = await cursor.toArray();
-
-      res.send(result);
-    })
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
   }
-}
-run().catch(console.dir);
+  run().catch(console.dir);
 
+  app.get('/', (req, res) =>{
+    res.send('brand based server is is running in the port 5000')
+  })
 
-
-
-
-
-
-app.get('/' , (req,res)=>{
-    res.send('brand based server is  running in the port 5000')
-})
-
-app.listen(port , () =>{
-    console.log(`brand based website is running on port : ${port}`);
-})
+  app.listen(port , ()=>{
+    console.log(`brand based website is running on port  : ${port}` );
+  })
