@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express')
 
-const jwt = require('jsonwebtoken')
+
 
 
 
@@ -9,7 +9,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000 ;
 
-const stripe = require('stripe')(process.env.STRIPE_KEY);
+
 
 const app = express();
 
@@ -78,7 +78,7 @@ const client = new MongoClient(uri, {
             res.send(result);
           })
 
-          app.get('/product/:id' , async (req , res)=>{
+          app.get('/products/:id' , async (req , res)=>{
             const id = req.params.id ; 
 
             const query = { _id : new ObjectId(id)};
